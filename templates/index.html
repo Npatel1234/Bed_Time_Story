@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Storytelling Engine</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Orbitron', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+        #stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+        .story-container {
+            animation: fadeIn 1s ease-in;
+        }
+        .choice-btn {
+            transition: all 0.3s ease;
+        }
+        .choice-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.7);
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .audio-player {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 10px;
+        }
+        #loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 50;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            animation: fadeInOverlay 0.3s ease-in;
+        }
+        @keyframes fadeInOverlay {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .loader {
+            border: 4px solid transparent;
+            border-top: 4px solid #3b82f6;
+            border-right: 4px solid #3b82f6;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite, pulse 2s ease-in-out infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 10px rgba(59, 130, 246, 0.5); }
+            50% { box-shadow: 0 0 20px rgba(59, 130, 246, 1); }
+        }
+        .loading-text {
+            margin-top: 1rem;
+            color: #3b82f6;
+            font-size: 1.25rem;
+            text-shadow: 0 0 5px rgba(59, 130, 246, 0.7);
+        }
+    </style>
+</head>
+<body>
+    <canvas id="stars"></canvas>
+    <div id="loading-overlay" aria-live="polite" role="status">
+        <div class="loader"></div>
+        <p class="loading-text">Generating Story...</p>
+    </div>
+    <div class="container mx-auto p-4 max-w-3xl">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl md:text-5xl font-bold text-blue-400 animate-pulse">
+                Interactive Storytelling Engine
+            </h1>
+            <p class="text-lg text-gray-300 mt-2">
+                Shape an epic tale with your choices, narrated by AI.
+            </p>
+        </header>
+
+        <div class="mb-6">
+            <label for="premise" class="block text-lg font-semibold text-blue-300">Story Premise</label>
+            <select id="premise" class="w-full p-3 mt-2 bg-gray-800 border border-blue-500 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-400">
+                <option value="Sci-fi adventure on a desert planet">Sci-fi adventure on a desert planet</option>
+                <option value="Fantasy quest in a magical kingdom">Fantasy quest in a magical kingdom</option>
+                <option value="Mystery in a haunted mansion">Mystery in a haunted mansion</option>
+            </select>
+            <div class="mt-4 flex items-center">
+                <input type="checkbox" id="tts-toggle" checked class="mr-2 h-5 w-5 text-blue-400 focus:ring-blue-400">
+                <label for="tts-toggle" class="text-lg text-blue-300">Enable Text-to-Speech</label>
+            </div>
+        </div>
+
+        <div class="flex justify-center space-x-4 mb-6">
+            <button id="start-btn" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">Start Story</button>
+            <button id="reset-btn" class="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition">Reset Story</button>
+        </div>
+
+        <div id="story-container" class="story-container bg-gray-900 p-6 rounded-lg shadow-lg max-h-96 overflow-y-auto"></div>
+
+        <div id="choices-container" class="mt-6 flex flex-col space-y-3 md:flex-row md:space-y-0 md:space-x-4 justify-center"></div>
+
+        <div class="mt-6 audio-player">
+            <audio id="audio-player" controls class="w-full"></audio>
+        </div>
+    </div>
+
+    <script src="/static/script.js"></script>
+    <script>
+        // Twinkling stars animation
+        const canvas = document.getElementById('stars');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const stars = [];
+        for (let i = 0; i < 100; i++) {
+            stars.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                radius: Math.random() * 2,
+                alpha: Math.random()
+            });
+        }
+
+        function animateStars() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            stars.forEach(star => {
+                ctx.beginPath();
+                ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255, 255, 255, ${star.alpha})`;
+                ctx.fill();
+                star.alpha += Math.random() * 0.05 - 0.025;
+                if (star.alpha < 0) star.alpha = 0;
+                if (star.alpha > 1) star.alpha = 1;
+            });
+            requestAnimationFrame(animateStars);
+        }
+        animateStars();
+    </script>
+</body>
+</html>
