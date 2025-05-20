@@ -20,7 +20,7 @@ Welcome to the **Bedtime Stories App**, an immersive, interactive storytelling e
 
 ```
 bedtime_stories_app/
-├── Story.py                 # Backend (Gradio/Flask)
+├── Story.py                 # Backend (Flask)
 ├── world_state.db         # SQLite database
 ├── static/                
 ├── templates/             
