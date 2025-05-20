@@ -18,13 +18,15 @@ Welcome to the **Bedtime Stories App**, an immersive, interactive storytelling e
 
 ## 📁 Project Structure
 
+```
 bedtime_stories_app/
-├── tet.py               # Backend logic (Gradio/Flask for story generation)
-├── world_state.db       # SQLite database (stores story progress/state)
-├── static/              # Static files (CSS, JS, images) [Optional]
-├── templates/           # HTML templates (if using Flask) [Optional]
-├── README.md            # Project documentation (you're here!)
-└── requirements.txt     # Python dependencies (run `pip freeze > requirements.txt`)
+├── tet.py                 # Backend (Gradio/Flask)
+├── world_state.db         # SQLite database
+├── static/                
+├── templates/             
+├── README.md
+└── requirements.txt
+```
 ---
 
 ## 🛠️ Prerequisites
